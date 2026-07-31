@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<!-- Created with https://studio.penguinmod.com/PenguinMod-Packager/ -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- We only include this to explicitly loosen the CSP of various packager environments. It does not provide any security. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: blob:">
+  <title>Catbees Incremental</title>
+  <style>
+    body {
+      color: #ffffff;
+      font-family: sans-serif;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    :root, body.is-fullscreen {
+      background-color: #000000;
+    }
+    [hidden] {
+      display: none !important;
+    }
+    h1 {
+      font-weight: normal;
+    }
+    a {
+      color: inherit;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    #app, #loading, #error, #launch {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: default;
+      user-select: none;
+      -webkit-user-select: none;
+      background-color: #000000;
+    }
+    #launch {
+      background-color: rgba(0, 0, 0, 0.7);
+      cursor: pointer;
+    }
+    
+    #loading {
+      
+    }
+    .progress-bar-outer {
+      border: 1px solid currentColor;
+      height: 10px;
+      width: 200px;
+      max-width: 200px;
+    }
+    .progress-bar-inner {
+      height: 100%;
+      width: 0;
+      background-color: currentColor;
+    }
+    .loading-text, noscript {
+      font-weight: normal;
+      font-size: 36px;
+      margin: 0 0 16px;
+    }
+    .loading-image {
+      margin: 0 0 16px;
+    }
+    #error-message, #error-stack {
+      font-family: monospace;
+      max-width: 600px;
+      white-space: pre-wrap;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    #error-stack {
+      text-align: left;
+      max-height: 200px;
+      overflow: auto;
+    }
+    
+    
+    .sc-canvas {
+      cursor: auto;
+    }
+    .sc-monitor-root[data-opcode^="data_"] .sc-monitor-value-color {
+      background-color: #ff8c1a;
+    }
+    .sc-monitor-row-value-outer {
+      background-color: #fc662c;
+    }
+    .sc-monitor-row-value-editing .sc-monitor-row-value-outer {
+      background-color: #e25b27;
+    }
+    
+  </style>
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHdpZHRoPSIxMTYiIGhlaWdodD0iMTE2IiB2aWV3Qm94PSIwLDAsMTE2LDExNiI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTI2MiwtMTIyKSI+PGcgc3Ryb2tlLXdpZHRoPSIwIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiPjxwYXRoIGQ9Ik0yNjIsMjM4di0xMTZoMTE2djExNnoiIGZpbGw9IiMwMDAwMDAiIHN0cm9rZT0iI2ZmZmZmZiIvPjxwYXRoIGQ9Ik0yODMuOTM0NDMsMTgwYzAsLTE5LjkxODQ3IDE2LjE0NzExLC0zNi4wNjU1NyAzNi4wNjU1NywtMzYuMDY1NTdjMTkuOTE4NDcsMCAzNi4wNjU1NywxNi4xNDcxMSAzNi4wNjU1NywzNi4wNjU1N2MwLDE5LjkxODQ3IC0xNi4xNDcxMSwzNi4wNjU1NyAtMzYuMDY1NTcsMzYuMDY1NTdjLTE5LjkxODQ3LDAgLTM2LjA2NTU3LC0xNi4xNDcxMSAtMzYuMDY1NTcsLTM2LjA2NTU3eiIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjZmZmZmZmIi8+PHBhdGggZD0iTTMyMCwxNTEuNjg5MTNjMCwwIDEuOTg0NjUsMTQuMjgwNDcgOC4wMDc1MiwyMC4zMDMzNGM2LjAyMjg3LDYuMDIyODcgMjAuMzAzMzQsOC4wMDc1MiAyMC4zMDMzNCw4LjAwNzUyYzAsMCAtMTQuMjgwNDcsMS45ODQ2NSAtMjAuMzAzMzQsOC4wMDc1MmMtNi4wMjI4Nyw2LjAyMjg3IC04LjAwNzUyLDIwLjMwMzM0IC04LjAwNzUyLDIwLjMwMzM0YzAsMCAtMS45ODQ2NSwtMTQuMjgwNDcgLTguMDA3NTIsLTIwLjMwMzM0Yy02LjAyMjg3LC02LjAyMjg3IC0yMC4zMDMzNCwtOC4wMDc1MiAtMjAuMzAzMzQsLTguMDA3NTJjMCwwIDE0LjI4MDQ3LC0xLjk4NDY1IDIwLjMwMzM0LC04LjAwNzUyYzYuMDIyODcsLTYuMDIyODcgOC4wMDc1MiwtMjAuMzAzMzQgOC4wMDc1MiwtMjAuMzAzMzR6IiBmaWxsPSIjMDAwMDAwIiBzdHJva2U9Im5vbmUiLz48L2c+PC9nPjwvc3ZnPjwhLS1yb3RhdGlvbkNlbnRlcjo1ODo1OC0tPg==">
+</head>
+<body>
+  <div id="app"></div>
+
+  
+
+  <div id="loading" class="screen">
+    <noscript>Enable JavaScript</noscript>
+    <h1 class="loading-text">Loafing...</h1>
+    
+    <div class="progress-bar-outer"><div class="progress-bar-inner" id="loading-inner"></div></div>
+  </div>
+
+  <div id="error" class="screen" hidden>
+    <h1>Error</h1>
+    <details>
+      <summary id="error-message"></summary>
+      <p id="error-stack"></p>
+    </details>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    const appElement = document.getElementById('app');
+    const launchScreen = document.getElementById('launch');
+    const loadingScreen = document.getElementById('loading');
+    const loadingInner = document.getElementById('loading-inner');
+    const errorScreen = document.getElementById('error');
+    const errorScreenMessage = document.getElementById('error-message');
+    const errorScreenStack = document.getElementById('error-stack');
+
+    const handleError = (error) => {
+      console.error(error);
+      if (!errorScreen.hidden) return;
+      errorScreen.hidden = false;
+      errorScreenMessage.textContent = '' + error;
+      let debug = error && error.stack || 'no stack';
+      debug += '\nUser agent: ' + navigator.userAgent;
+      errorScreenStack.textContent = debug;
+    };
+    const setProgress = (progress) => {
+      if (loadingInner) loadingInner.style.width = progress * 100 + '%';
+    };
+    const interpolate = (a, b, t) => a + t * (b - a);
+
+    try {
+      setProgress(0.1);
+
+      const scaffolding = new Scaffolding.Scaffolding();
+      scaffolding.width = 640;
+      scaffolding.height = 360;
+      scaffolding.resizeMode = "preserve-ratio";
+      scaffolding.editableLists = false;
+      scaffolding.usePackagedRuntime = true;
+      scaffolding.setup();
+      scaffolding.appendTo(appElement);
+
+      const vm = scaffolding.vm;
+      window.scaffolding = scaffolding;
+      window.vm = scaffolding.vm;
+      window.Scratch = {
+        vm,
+        renderer: vm.renderer,
+        audioEngine: vm.runtime.audioEngine,
+        bitmapAdapter: vm.runtime.v2BitmapAdapter,
+        videoProvider: vm.runtime.ioDevices.video.provider
+      };
+
+      vm.runtime.isPackagedProject = true;
+      scaffolding.setUsername("catbee####".replace(/#/g, () => Math.floor(Math.random() * 10)));
+      scaffolding.setAccentColor("#00c3ff");
+
+      try {
+        scaffolding.addCloudProvider(new Scaffolding.Cloud.WebSocketProvider(["wss://clouddata.turbowarp.org","wss://clouddata.turbowarp.xyz"], "p4-@Catbees Incremental.pmp"));
+      } catch (error) {
+        console.error(error);
+      }
+
+      vm.setTurboMode(false);
+      if (vm.setInterpolation) vm.setInterpolation(false);
+      if (vm.setFramerate) vm.setFramerate(240);
+      if (vm.renderer.setUseHighQualityRender) vm.renderer.setUseHighQualityRender(true);
+      if (vm.setRuntimeOptions) vm.setRuntimeOptions({
+        fencing: false,
+        miscLimits: true,
+        maxClones: 9999999999,
+        dangerousOptimizations: false
+      });
+      if (vm.setCompilerOptions) vm.setCompilerOptions({
+        enabled: true,
+        warpTimer: false
+      });
+      if (vm.renderer.setMaxTextureDimension) vm.renderer.setMaxTextureDimension(2048);
+
+      if (typeof ScaffoldingAddons !== 'undefined') {
+        ScaffoldingAddons.run(scaffolding, {"gamepad":false,"pointerlock":false,"specialCloudBehaviors":false,"unsafeCloudBehaviors":false,"pause":false});
+      }
+
+      scaffolding.setExtensionSecurityManager({
+        getSandboxMode: () => 'unsandboxed',
+        canLoadExtensionFromProject: () => true
+      });
+      for (const extension of ["data:text/javascript;,(function(Scratch)%20%7B%20%2F%2F%20Name%3A%20Format%20Numbers%0A%2F%2F%20ID%3A%20dogeiscutformatnumbers%0A%2F%2F%20Description%3A%20Format%20large%20numbers%20into%20AD%20standard%2C%20fixed%20decimal%2C%20comma%20separated%2C%20or%20scientific%20notation.%0A%2F%2F%20By%3A%20DogeisCut%20%3Chttps%3A%2F%2Fscratch.mit.edu%2Fusers%2Fdogeiscut%2F%3E%0A%2F%2F%20License%3A%20MIT%0A%0A%2F%2F%20Version%20V.2.0.2%0A%0A%2F%2F%20TODO%3A%0A%2F%2F%20-%20Editor%20Icon%0A%2F%2F%20-%20BigInt%20Support%0A%2F%2F%20-%20Time%20notation%2C%20decimal%20count%20defines%20how%20many%20milliseconds%20show.%0A%0A%2F*%20generated%20l10n%20code%20*%2FScratch.translate.setup(%7B%22de%22%3A%7B%22_Format%20Numbers%22%3A%22Zahlen%20formatieren%22%7D%2C%22fi%22%3A%7B%22_AD%20standard%22%3A%22mainosstandardi%22%2C%22_Format%20Numbers%22%3A%22Muotoile%20lukuja%22%2C%22_comma%20separated%22%3A%22pilkku%20tuhaterottimena%22%2C%22_fixed%20decimal%22%3A%22kiinte%C3%A4%20tarkkuus%22%2C%22_format%20number%20%5BNUM%5D%20to%20notation%20%5BNOTATION%5D%20with%20%5BDECIMALS%5D%20decimal%20places%22%3A%22muuta%20luku%20%5BNUM%5D%20muotoon%20%5BNOTATION%5D%20%5BDECIMALS%5D%20desimaalin%20tarkkuudella%22%2C%22_scientific%20notation%22%3A%22tieteellinen%20merkint%C3%A4%22%7D%2C%22it%22%3A%7B%22_Format%20Numbers%22%3A%22Formattazione%20Numeri%22%2C%22_comma%20separated%22%3A%22virgola%20mobile%22%2C%22_fixed%20decimal%22%3A%22virgola%20fissa%22%2C%22_format%20number%20%5BNUM%5D%20to%20notation%20%5BNOTATION%5D%20with%20%5BDECIMALS%5D%20decimal%20places%22%3A%22formatta%20numero%20%5BNUM%5D%20in%20notazione%20%5BNOTATION%5D%20con%20%5BDECIMALS%5D%20decimali%22%2C%22_scientific%20notation%22%3A%22notazione%20scientifica%22%7D%2C%22ja%22%3A%7B%22_Format%20Numbers%22%3A%22%E6%95%B0%E5%80%A4%E3%81%AE%E6%9B%B8%E5%BC%8F%E8%A8%AD%E5%AE%9A%22%7D%2C%22ko%22%3A%7B%22_Format%20Numbers%22%3A%22%EC%88%AB%EC%9E%90%20%ED%8F%AC%EB%A7%B7%ED%99%94%22%7D%2C%22ru%22%3A%7B%22_AD%20standard%22%3A%22%D1%81%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%20AD%22%2C%22_Format%20Numbers%22%3A%22%D0%9F%D1%80%D0%B5%D0%BE%D0%B1%D1%80%D0%B0%D0%B7%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5%20%D1%87%D0%B8%D1%81%D0%B5%D0%BB%22%2C%22_comma%20separated%22%3A%22%D1%87%D0%B5%D1%80%D0%B5%D0%B7%20%D0%B7%D0%B0%D0%BF%D1%8F%D1%82%D1%83%D1%8E%22%2C%22_fixed%20decimal%22%3A%22%D1%84%D0%B8%D0%BA%D1%81%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%BD%D0%B0%D1%8F%20%D1%82%D0%BE%D1%87%D0%BA%D0%B0%22%2C%22_format%20number%20%5BNUM%5D%20to%20notation%20%5BNOTATION%5D%20with%20%5BDECIMALS%5D%20decimal%20places%22%3A%22%D0%BF%D1%80%D0%B5%D0%BE%D0%B1%D1%80%D0%B0%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D1%8C%20%D1%87%D0%B8%D1%81%D0%BB%D0%BE%20%5BNUM%5D%20%D0%B2%20%D0%BD%D0%BE%D1%82%D0%B0%D1%86%D0%B8%D1%8E%20%5BNOTATION%5D%20%D1%81%20%5BDECIMALS%5D%20%D0%BD%D0%B5%D1%81%D0%BA%D0%BE%D0%BB%D1%8C%D0%BA%D0%B8%D0%BC%D0%B8%20%D1%82%D0%BE%D1%87%D0%BA%D0%B0%D0%BC%D0%B8%22%2C%22_scientific%20notation%22%3A%22%D0%BD%D0%B0%D1%83%D1%87%D0%BD%D0%B0%D1%8F%20%D0%BD%D0%BE%D1%82%D0%B0%D1%86%D0%B8%D1%8F%22%7D%2C%22zh-cn%22%3A%7B%22_AD%20standard%22%3A%22%E5%B9%BF%E5%91%8A%E6%A0%87%E5%87%86%22%2C%22_Format%20Numbers%22%3A%22%E6%A0%BC%E5%BC%8F%E5%8C%96%E6%95%B0%E5%AD%97%22%2C%22_comma%20separated%22%3A%22%E9%80%97%E5%8F%B7%E5%88%86%E9%9A%94%22%2C%22_fixed%20decimal%22%3A%22%E5%9B%BA%E5%AE%9A%E5%B0%8F%E6%95%B0%22%2C%22_format%20number%20%5BNUM%5D%20to%20notation%20%5BNOTATION%5D%20with%20%5BDECIMALS%5D%20decimal%20places%22%3A%22%E5%B0%86%E6%95%B0%E5%AD%97%5BNUM%5D%E6%A0%BC%E5%BC%8F%E5%8C%96%E4%B8%BA%5BDECIMALS%5D%E4%BD%8D%E5%B0%8F%E6%95%B0%E7%9A%84%5BNOTATION%5D%E6%A0%BC%E5%BC%8F%22%2C%22_scientific%20notation%22%3A%22%E7%A7%91%E5%AD%A6%E8%AE%A1%E6%95%B0%E6%B3%95%22%7D%7D)%3B%2F*%20end%20generated%20l10n%20code%20*%2F(function%20(Scratch)%20%7B%0A%20%20%22use%20strict%22%3B%0A%0A%20%20const%20Cast%20%3D%20Scratch.Cast%3B%0A%0A%20%20const%20Formats%20%3D%20%7B%0A%20%20%20%20AD_STANDARD%3A%20%22AD%20standard%22%2C%0A%20%20%20%20FIXED_DECIMAL%3A%20%22fixed%20decimal%22%2C%0A%20%20%20%20COMMA_SEPERATED%3A%20%22comma%20separated%22%2C%0A%20%20%20%20SCIENTIFIC_NOTATION%3A%20%22scientific%20notation%22%2C%0A%20%20%7D%3B%0A%0A%20%20class%20FormatNumbers%20%7B%0A%20%20%20%20constructor()%20%7B%0A%20%20%20%20%20%20this.notation%20%3D%20%22AD%20standard%22%3B%0A%20%20%20%20%20%20this.decimalPlaces%20%3D%202%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20toFixedTrimmed(number%2C%20decimalPlaces)%20%7B%0A%20%20%20%20%20%20const%20formatted%20%3D%20number.toFixed(decimalPlaces)%3B%0A%20%20%20%20%20%20return%20decimalPlaces%20%3E%200%20%3F%20formatted.replace(%2F%5C.%3F0%2B%24%2F%2C%20%22%22)%20%3A%20formatted%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20convertToADStandard(number%2C%20decimalPlaces%20%3D%202)%20%7B%0A%20%20%20%20%20%20if%20(typeof%20number%20!%3D%3D%20%22number%22%20%7C%7C%20isNaN(number))%20%7B%0A%20%20%20%20%20%20%20%20return%20%22Invalid%20Input%22%3B%0A%20%20%20%20%20%20%7D%0A%0A%20%20%20%20%20%20if%20(!isFinite(number))%20%7B%0A%20%20%20%20%20%20%20%20return%20number.toString()%3B%0A%20%20%20%20%20%20%7D%0A%0A%20%20%20%20%20%20if%20(number%20%3D%3D%3D%200)%20%7B%0A%20%20%20%20%20%20%20%20return%20%220%22%3B%0A%20%20%20%20%20%20%7D%0A%0A%20%20%20%20%20%20const%20kMBd%20%3D%20%5B%0A%20%20%20%20%20%20%20%20%22%22%2C%0A%20%20%20%20%20%20%20%20%22K%22%2C%0A%20%20%20%20%20%20%20%20%22M%22%2C%0A%20%20%20%20%20%20%20%20%22B%22%2C%0A%20%20%20%20%20%20%20%20%22T%22%2C%0A%20%20%20%20%20%20%20%20%22Qa%22%2C%0A%20%20%20%20%20%20%20%20%22Qt%22%2C%0A%20%20%20%20%20%20%20%20%22Sx%22%2C%0A%20%20%20%20%20%20%20%20%22Sp%22%2C%0A%20%20%20%20%20%20%20%20%22Oc%22%2C%0A%20%20%20%20%20%20%20%20%22No%22%2C%0A%20%20%20%20%20%20%20%20%22Dc%22%2C%0A%20%20%20%20%20%20%5D%3B%0A%20%20%20%20%20%20const%20unitPrefixes%20%3D%20%5B%22U%22%2C%20%22D%22%2C%20%22T%22%2C%20%22Qa%22%2C%20%22Qn%22%2C%20%22Sx%22%2C%20%22Sp%22%2C%20%22O%22%2C%20%22N%22%5D%3B%0A%20%20%20%20%20%20const%20tensPrefixes%20%3D%20%5B%0A%20%20%20%20%20%20%20%20%22Dc%22%2C%0A%20%20%20%20%20%20%20%20%22Vg%22%2C%0A%20%20%20%20%20%20%20%20%22Tg%22%2C%0A%20%20%20%20%20%20%20%20%22Qd%22%2C%0A%20%20%20%20%20%20%20%20%22Qn%22%2C%0A%20%20%20%20%20%20%20%20%22Se%22%2C%0A%20%20%20%20%20%20%20%20%22St%22%2C%0A%20%20%20%20%20%20%20%20%22Og%22%2C%0A%20%20%20%20%20%20%20%20%22Nn%22%2C%0A%20%20%20%20%20%20%5D%3B%0A%20%20%20%20%20%20const%20hundredsPrefixes%20%3D%20%5B%0A%20%20%20%20%20%20%20%20%22Ce%22%2C%0A%20%20%20%20%20%20%20%20%22Dn%22%2C%0A%20%20%20%20%20%20%20%20%22Tc%22%2C%0A%20%20%20%20%20%20%20%20%22Qe%22%2C%0A%20%20%20%20%20%20%20%20%22Qu%22%2C%0A%20%20%20%20%20%20%20%20%22Sc%22%2C%0A%20%20%20%20%20%20%20%20%22Si%22%2C%0A%20%20%20%20%20%20%20%20%22Oe%22%2C%0A%20%20%20%20%20%20%20%20%22Ne%22%2C%0A%20%20%20%20%20%20%5D%3B%0A%20%20%20%20%20%20const%20tier2Illions%20%3D%20%5B%22MI%22%2C%20%22MC%22%2C%20%22NA%22%2C%20%22PC%22%2C%20%22FM%22%2C%20%22AT%22%2C%20%22ZP%22%5D%3B%0A%20%20%20%20%20%20const%20tier2Cutoff%20%3D%203003%20*%20tier2Illions.length%3B%0A%20%20%20%20%20%20if%20(Math.log10(Math.abs(number))%20%3E%20tier2Cutoff)%20%7B%0A%20%20%20%20%20%20%20%20return%20%60Il(%24%7Bnumber%7D)%60%3B%0A%20%20%20%20%20%20%7D%0A%0A%20%20%20%20%20%20if%20(Math.abs(number)%20%3C%201000)%20%7B%0A%20%20%20%20%20%20%20%20return%20this.toFixedTrimmed(number%2C%20decimalPlaces)%3B%0A%20%20%20%20%20%20%7D%0A%0A%20%20%20%20%20%20const%20tier%20%3D%20Math.max(0%2C%20Math.floor(Math.log10(Math.abs(number))%20%2F%203))%3B%0A%0A%20%20%20%20%20%20if%20(tier%20%3C%3D%2011)%20%7B%0A%20%20%20%20%20%20%20%20const%20scaledNumber%20%3D%20number%20%2F%20Math.pow(10%2C%20tier%20*%203)%3B%0A%20%20%20%20%20%20%20%20return%20this.toFixedTrimmed(scaledNumber%2C%20decimalPlaces)%20%2B%20kMBd%5Btier%5D%3B%0A%20%20%20%20%20%20%7D%0A%0A%20%20%20%20%20%20const%20illionNumber%20%3D%20Math.floor(Math.log10(Math.abs(number))%20%2F%203)%20-%201%3B%0A%20%20%20%20%20%20let%20illionString%20%3D%20%22%22%3B%0A%0A%20%20%20%20%20%20if%20(illionNumber%20%3C%3D%20999)%20%7B%0A%20%20%20%20%20%20%20%20const%20hundreds%20%3D%20Math.floor(illionNumber%20%2F%20100)%3B%0A%20%20%20%20%20%20%20%20const%20tens%20%3D%20Math.floor((illionNumber%20%25%20100)%20%2F%2010)%3B%0A%20%20%20%20%20%20%20%20const%20units%20%3D%20illionNumber%20%25%2010%3B%0A%0A%20%20%20%20%20%20%20%20illionString%20%3D%0A%20%20%20%20%20%20%20%20%20%20(hundreds%20%3E%200%20%3F%20hundredsPrefixes%5Bhundreds%20-%201%5D%20%3A%20%22%22)%20%2B%0A%20%20%20%20%20%20%20%20%20%20(units%20%3E%200%20%3F%20unitPrefixes%5Bunits%20-%201%5D%20%3A%20%22%22)%20%2B%0A%20%20%20%20%20%20%20%20%20%20(tens%20%3E%200%20%3F%20tensPrefixes%5Btens%20-%201%5D%20%3A%20%22%22)%3B%0A%20%20%20%20%20%20%7D%20else%20%7B%0A%20%20%20%20%20%20%20%20const%20tier2Index%20%3D%20Math.floor(illionNumber%20%2F%201000)%3B%0A%20%20%20%20%20%20%20%20const%20tier2Remainder%20%3D%20illionNumber%20%25%201000%3B%0A%0A%20%20%20%20%20%20%20%20if%20(tier2Index%20%3C%3D%20tier2Illions.length)%20%7B%0A%20%20%20%20%20%20%20%20%20%20illionString%20%3D%20tier2Illions%5Btier2Index%20-%201%5D%3B%0A%20%20%20%20%20%20%20%20%7D%20else%20%7B%0A%20%20%20%20%20%20%20%20%20%20return%20%60Il(%24%7Bnumber%7D)%60%3B%0A%20%20%20%20%20%20%20%20%7D%0A%0A%20%20%20%20%20%20%20%20if%20(tier2Remainder%20%3E%200)%20%7B%0A%20%20%20%20%20%20%20%20%20%20const%20hundreds%20%3D%20Math.floor(tier2Remainder%20%2F%20100)%3B%0A%20%20%20%20%20%20%20%20%20%20const%20tens%20%3D%20Math.floor((tier2Remainder%20%25%20100)%20%2F%2010)%3B%0A%20%20%20%20%20%20%20%20%20%20const%20units%20%3D%20tier2Remainder%20%25%2010%3B%0A%0A%20%20%20%20%20%20%20%20%20%20const%20remainderString%20%3D%0A%20%20%20%20%20%20%20%20%20%20%20%20(hundreds%20%3E%200%20%3F%20hundredsPrefixes%5Bhundreds%20-%201%5D%20%3A%20%22%22)%20%2B%0A%20%20%20%20%20%20%20%20%20%20%20%20(tens%20%3E%200%20%3F%20tensPrefixes%5Btens%20-%201%5D%20%3A%20%22%22)%20%2B%0A%20%20%20%20%20%20%20%20%20%20%20%20(units%20%3E%200%20%3F%20unitPrefixes%5Bunits%20-%201%5D%20%3A%20%22%22)%3B%0A%20%20%20%20%20%20%20%20%20%20illionString%20%3D%20remainderString%20%2B%20%22-%22%20%2B%20illionString%3B%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%0A%20%20%20%20%20%20const%20scaledNumber%20%3D%0A%20%20%20%20%20%20%20%20number%20%2F%20Math.pow(10%2C%20Math.floor(Math.log10(Math.abs(number))%20%2F%203)%20*%203)%3B%0A%20%20%20%20%20%20return%20(%0A%20%20%20%20%20%20%20%20this.toFixedTrimmed(scaledNumber%2C%20decimalPlaces)%20%2B%20%22%20%22%20%2B%20illionString%0A%20%20%20%20%20%20)%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20convertToCommaSeparated(number%2C%20decimalPlaces%20%3D%202)%20%7B%0A%20%20%20%20%20%20return%20number%0A%20%20%20%20%20%20%20%20.toFixed(decimalPlaces)%0A%20%20%20%20%20%20%20%20.replace(%2F(%5Cd)(%3F%3D(%5Cd%7B3%7D)%2B(%3F!%5Cd))%2Fg%2C%20%22%241%2C%22)%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20convertToScientificNotation(number%2C%20decimalPlaces%20%3D%202)%20%7B%0A%20%20%20%20%20%20return%20number.toExponential(decimalPlaces)%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20formatNumber(args)%20%7B%0A%20%20%20%20%20%20const%20decimals%20%3D%20Math.max(0%2C%20Math.min(100%2C%20Cast.toNumber(args.DECIMALS)))%3B%0A%20%20%20%20%20%20switch%20(args.NOTATION)%20%7B%0A%20%20%20%20%20%20%20%20case%20Formats.AD_STANDARD%3A%0A%20%20%20%20%20%20%20%20%20%20return%20this.convertToADStandard(Cast.toNumber(args.NUM)%2C%20decimals)%3B%0A%20%20%20%20%20%20%20%20case%20Formats.COMMA_SEPERATED%3A%0A%20%20%20%20%20%20%20%20%20%20return%20this.convertToCommaSeparated(%0A%20%20%20%20%20%20%20%20%20%20%20%20Cast.toNumber(args.NUM)%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20decimals%0A%20%20%20%20%20%20%20%20%20%20)%3B%0A%20%20%20%20%20%20%20%20case%20Formats.SCIENTIFIC_NOTATION%3A%0A%20%20%20%20%20%20%20%20%20%20return%20this.convertToScientificNotation(%0A%20%20%20%20%20%20%20%20%20%20%20%20Cast.toNumber(args.NUM)%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20decimals%0A%20%20%20%20%20%20%20%20%20%20)%3B%0A%20%20%20%20%20%20%20%20default%3A%0A%20%20%20%20%20%20%20%20%20%20return%20Cast.toNumber(args.NUM).toFixed(decimals)%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%0A%20%20%20%20getInfo()%20%7B%0A%20%20%20%20%20%20return%20%7B%0A%20%20%20%20%20%20%20%20id%3A%20%22dogeiscutformatnumbers%22%2C%0A%20%20%20%20%20%20%20%20name%3A%20Scratch.translate(%22Format%20Numbers%22)%2C%0A%20%20%20%20%20%20%20%20color1%3A%20%22%23419873%22%2C%0A%20%20%20%20%20%20%20%20color2%3A%20%22%234CA981%22%2C%0A%20%20%20%20%20%20%20%20blocks%3A%20%5B%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20%22formatNumber%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20Scratch.translate(%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22format%20number%20%5BNUM%5D%20to%20notation%20%5BNOTATION%5D%20with%20%5BDECIMALS%5D%20decimal%20places%22%0A%20%20%20%20%20%20%20%20%20%20%20%20)%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.REPORTER%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20arguments%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20NUM%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20type%3A%20Scratch.ArgumentType.NUMBER%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20defaultValue%3A%201000%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20NOTATION%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20type%3A%20Scratch.ArgumentType.STRING%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20menu%3A%20%22notationOptions%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20defaultValue%3A%20%22AD%20standard%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20DECIMALS%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20type%3A%20Scratch.ArgumentType.NUMBER%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20defaultValue%3A%202%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%5D%2C%0A%20%20%20%20%20%20%20%20menus%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20notationOptions%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20acceptReporters%3A%20false%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20items%3A%20%5B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20Scratch.translate(%22AD%20standard%22)%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20value%3A%20Formats.AD_STANDARD%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20Scratch.translate(%22fixed%20decimal%22)%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20value%3A%20Formats.FIXED_DECIMAL%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20Scratch.translate(%22comma%20separated%22)%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20value%3A%20Formats.COMMA_SEPERATED%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20Scratch.translate(%22scientific%20notation%22)%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20value%3A%20Formats.SCIENTIFIC_NOTATION%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%5D%2C%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%7D%3B%0A%20%20%20%20%7D%0A%20%20%7D%0A%0A%20%20Scratch.extensions.register(new%20FormatNumbers())%3B%0A%7D)(Scratch)%3B%0A%20%7D)(Scratch)%3B","data:text/javascript;,(function(Scratch)%20%7B%20%2F%2F%20Name%3A%20Ask%20Before%20Closing%20Tab%0A%2F%2F%20ID%3A%20xmerclosecontrol%0A%2F%2F%20Description%3A%20Show%20a%20prompt%20when%20someone%20tries%20to%20close%20the%20tab.%0A%2F%2F%20By%3A%20XmerOriginals%20%3Chttps%3A%2F%2Fscratch.mit.edu%2Fusers%2FXmerOriginals%2F%3E%0A%2F%2F%20License%3A%20MPL-2.0%0A%0A%2F*%20generated%20l10n%20code%20*%2FScratch.translate.setup(%7B%22de%22%3A%7B%22_Ask%20Before%20Closing%20Tab%22%3A%22Frage%20vor%20dem%20Schlie%C3%9Fen%22%7D%2C%22fi%22%3A%7B%22_Ask%20Before%20Closing%20Tab%22%3A%22Kysy%20ennen%20v%C3%A4lilehden%20sulkemista%22%2C%22_ask%20before%20closing%20tab%20enabled%3F%22%3A%22onko%20kysyminen%20ennen%20v%C3%A4lilehden%20sulkemista%20p%C3%A4%C3%A4ll%C3%A4%3F%22%2C%22_disabled%22%3A%22pois%20p%C3%A4%C3%A4lt%C3%A4%22%2C%22_enabled%22%3A%22p%C3%A4%C3%A4lle%22%2C%22_set%20ask%20before%20closing%20tab%20to%20%5BOPTION%5D%22%3A%22kytke%20kysyminen%20ennen%20v%C3%A4lilehden%20sulkemista%20%5BOPTION%5D%22%7D%2C%22it%22%3A%7B%22_Ask%20Before%20Closing%20Tab%22%3A%22Chiedi%20Conferma%20Prima%20di%20Chiudere%20una%20Scheda%22%2C%22_ask%20before%20closing%20tab%20enabled%3F%22%3A%22conferma%20chiusura%20scheda%20abilitata%22%2C%22_disabled%22%3A%22disabilita%22%2C%22_enabled%22%3A%22abilita%22%2C%22_set%20ask%20before%20closing%20tab%20to%20%5BOPTION%5D%22%3A%22%5BOPTION%5D%20conferma%20chiusura%20scheda%22%7D%2C%22ja%22%3A%7B%22_Ask%20Before%20Closing%20Tab%22%3A%22%E3%82%BF%E3%83%96%E3%82%92%E9%96%89%E3%81%98%E3%82%8B%E5%89%8D%E3%81%AB%E7%A2%BA%E8%AA%8D%E3%81%99%E3%82%8B%22%2C%22_ask%20before%20closing%20tab%20enabled%3F%22%3A%22%E3%82%BF%E3%83%96%E3%82%92%E9%96%89%E3%81%98%E3%82%8B%E5%89%8D%E3%81%AB%E7%A2%BA%E8%AA%8D%E3%81%99%E3%82%8B%E3%81%AE%E3%81%8C%E6%9C%89%E5%8A%B9%22%2C%22_disabled%22%3A%22%E7%84%A1%E5%8A%B9%22%2C%22_enabled%22%3A%22%E6%9C%89%E5%8A%B9%22%2C%22_set%20ask%20before%20closing%20tab%20to%20%5BOPTION%5D%22%3A%22%E3%82%BF%E3%83%96%E3%82%92%E9%96%89%E3%81%98%E3%82%8B%E5%89%8D%E3%81%AB%E7%A2%BA%E8%AA%8D%E3%81%99%E3%82%8B%E3%81%AE%E3%82%92%5BOPTION%5D%E3%81%AB%E3%81%99%E3%82%8B%22%7D%2C%22ko%22%3A%7B%22_Ask%20Before%20Closing%20Tab%22%3A%22%ED%83%AD%20%EB%8B%AB%EA%B8%B0%20%EC%A0%84%EC%97%90%20%EB%AC%BB%EA%B8%B0%22%2C%22_ask%20before%20closing%20tab%20enabled%3F%22%3A%22%ED%83%AD%20%EB%8B%AB%EA%B8%B0%20%EC%A0%84%EC%97%90%20%EB%AC%BB%EA%B8%B0%EA%B0%80%20%ED%99%9C%EC%84%B1%ED%99%94%EC%9D%B8%EA%B0%80%3F%22%2C%22_disabled%22%3A%22%EB%B9%84%ED%99%9C%EC%84%B1%ED%99%94%22%2C%22_enabled%22%3A%22%ED%99%9C%EC%84%B1%ED%99%94%22%2C%22_set%20ask%20before%20closing%20tab%20to%20%5BOPTION%5D%22%3A%22%ED%83%AD%20%EB%8B%AB%EA%B8%B0%20%EC%A0%84%EC%97%90%20%EB%AC%BB%EA%B8%B0%20%5BOPTION%5D%20%22%7D%2C%22nb%22%3A%7B%22_Ask%20Before%20Closing%20Tab%22%3A%22Sp%C3%B8r%20f%C3%B8r%20du%20lukker%20fanen%22%2C%22_disabled%22%3A%22deaktivert%22%2C%22_enabled%22%3A%22aktivert%22%7D%2C%22nl%22%3A%7B%22_Ask%20Before%20Closing%20Tab%22%3A%22Tabblad%20sluiten%20bevestigen%22%2C%22_ask%20before%20closing%20tab%20enabled%3F%22%3A%22tabblad%20sluiten%20bevestigen%20ingeschakeld%3F%22%2C%22_disabled%22%3A%22uit%22%2C%22_enabled%22%3A%22in%22%2C%22_set%20ask%20before%20closing%20tab%20to%20%5BOPTION%5D%22%3A%22schakel%20tabblad%20sluiten%20bevestigen%20%5BOPTION%5D%22%7D%2C%22ru%22%3A%7B%22_Ask%20Before%20Closing%20Tab%22%3A%22%D0%A1%D0%BF%D1%80%D0%BE%D1%81%D0%B8%D1%82%D1%8C%20%D0%9F%D0%B5%D1%80%D0%B5%D0%B4%20%D0%97%D0%B0%D0%BA%D1%80%D1%8B%D1%82%D0%B8%D0%B5%D0%BC%20%D0%92%D0%BA%D0%BB%D0%B0%D0%B4%D0%BA%D0%B8%22%2C%22_ask%20before%20closing%20tab%20enabled%3F%22%3A%22%D1%81%D0%BF%D1%80%D0%BE%D1%81%20%D0%B4%D0%BE%20%D0%B7%D0%B0%D0%BA%D1%80%D1%8B%D1%82%D0%B8%D1%8F%20%D0%B2%D0%BA%D0%BB%D0%B0%D0%B4%D0%BA%D0%B8%20%D0%B2%D0%BA%D0%BB%D1%8E%D1%87%D1%91%D0%BD%3F%22%2C%22_disabled%22%3A%22%D0%B2%D1%8B%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%BD%22%2C%22_enabled%22%3A%22%D0%B2%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%BD%22%2C%22_set%20ask%20before%20closing%20tab%20to%20%5BOPTION%5D%22%3A%22%D0%B7%D0%B0%D0%B4%D0%B0%D1%82%D1%8C%20%D1%81%D0%BF%D1%80%D0%BE%D1%81%20%D0%B4%D0%BE%20%D0%B7%D0%B0%D0%BA%D1%80%D1%8B%D1%82%D0%B8%D1%8F%20%D0%B2%D0%BA%D0%BB%D0%B0%D0%B4%D0%BA%D0%B8%20%D0%BD%D0%B0%20%5BOPTION%5D%22%7D%2C%22uk%22%3A%7B%22_Ask%20Before%20Closing%20Tab%22%3A%22%D0%97%D0%B0%D0%BF%D0%B8%D1%82%20%D0%BF%D0%B5%D1%80%D0%B5%D0%B4%20%D0%B2%D0%B8%D1%85%D0%BE%D0%B4%D0%BE%D0%BC%22%2C%22_disabled%22%3A%22%D0%B2%D0%B8%D0%BC%D0%BA%D0%BD%D1%83%D1%82%D0%B8%22%2C%22_enabled%22%3A%22%D1%83%D0%B2%D1%96%D0%BC%D0%BA%D0%BD%D0%B5%D0%BD%D0%BE%22%7D%2C%22zh-cn%22%3A%7B%22_Ask%20Before%20Closing%20Tab%22%3A%22%E5%85%B3%E9%97%AD%E9%A1%B5%E9%9D%A2%E6%97%B6%E8%AF%A2%E9%97%AE%22%2C%22_ask%20before%20closing%20tab%20enabled%3F%22%3A%22%E5%85%B3%E9%97%AD%E9%A1%B5%E9%9D%A2%E6%97%B6%E8%AF%A2%E9%97%AE%E5%B7%B2%E5%90%AF%E7%94%A8%EF%BC%9F%22%2C%22_disabled%22%3A%22%E7%A6%81%E7%94%A8%22%2C%22_enabled%22%3A%22%E5%90%AF%E7%94%A8%22%2C%22_set%20ask%20before%20closing%20tab%20to%20%5BOPTION%5D%22%3A%22%E5%B0%86%E5%85%B3%E9%97%AD%E9%A1%B5%E9%9D%A2%E6%97%B6%E8%AF%A2%E9%97%AE%E8%AE%BE%E4%B8%BA%5BOPTION%5D%22%7D%7D)%3B%2F*%20end%20generated%20l10n%20code%20*%2F(function%20(Scratch)%20%7B%0A%20%20%22use%20strict%22%3B%0A%0A%20%20let%20enabled%20%3D%20false%3B%0A%0A%20%20window.addEventListener(%22beforeunload%22%2C%20(e)%20%3D%3E%20%7B%0A%20%20%20%20if%20(enabled)%20%7B%0A%20%20%20%20%20%20e.preventDefault()%3B%0A%20%20%20%20%7D%0A%20%20%7D)%3B%0A%0A%20%20class%20CloseControl%20%7B%0A%20%20%20%20getInfo()%20%7B%0A%20%20%20%20%20%20return%20%7B%0A%20%20%20%20%20%20%20%20id%3A%20%22xmerclosecontrol%22%2C%0A%20%20%20%20%20%20%20%20name%3A%20Scratch.translate(%22Ask%20Before%20Closing%20Tab%22)%2C%0A%20%20%20%20%20%20%20%20blocks%3A%20%5B%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20%22setControl%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.COMMAND%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20Scratch.translate(%22set%20ask%20before%20closing%20tab%20to%20%5BOPTION%5D%22)%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20arguments%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20OPTION%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20type%3A%20Scratch.ArgumentType.STRING%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20menu%3A%20%22option%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20%22getControl%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.BOOLEAN%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20Scratch.translate(%22ask%20before%20closing%20tab%20enabled%3F%22)%2C%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%5D%2C%0A%20%20%20%20%20%20%20%20menus%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20option%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20acceptReporters%3A%20true%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20items%3A%20%5B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20Scratch.translate(%22enabled%22)%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20value%3A%20%22true%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20Scratch.translate(%22disabled%22)%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20value%3A%20%22false%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%5D%2C%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%7D%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20setControl(%7B%20OPTION%20%7D)%20%7B%0A%20%20%20%20%20%20enabled%20%3D%20Scratch.Cast.toBoolean(OPTION)%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20getControl()%20%7B%0A%20%20%20%20%20%20return%20enabled%3B%0A%20%20%20%20%7D%0A%20%20%7D%0A%0A%20%20Scratch.extensions.register(new%20CloseControl())%3B%0A%7D)(Scratch)%3B%0A%20%7D)(Scratch)%3B"]) {
+        vm.extensionManager.loadExtensionURL(extension);
+      }
+
+      vm.runtime.isProjectPermissionManagerDisabled = true;
+      
+    } catch (e) {
+      handleError(e);
+    }
+  </script>
+  
+  
+    <script>
+      const getProjectData = (function() {
+        const storage = scaffolding.storage;
+        storage.onprogress = (total, loaded) => {
+          setProgress(interpolate(0.2, 0.98, loaded / total));
+        };
+        
+        storage.addWebStore(
+          [
+            storage.AssetType.ImageVector,
+            storage.AssetType.ImageBitmap,
+            storage.AssetType.Sound,
+            storage.AssetType.Font
+          ].filter(i => i),
+          (asset) => new URL('./assets/' + asset.assetId + '.' + asset.dataFormat, location).href
+        );
+        return () => new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = () => {
+          resolve(xhr.response);
+        };
+        xhr.onerror = () => {
+          if (location.protocol === 'file:') {
+            reject(new Error('Zip environment must be used from a website, not from a file URL.'));
+          } else {
+            reject(new Error('Request to load project data failed.'));
+          }
+        };
+        xhr.onprogress = (e) => {
+          if (e.lengthComputable) {
+            setProgress(interpolate(0.1, 0.2, e.loaded / e.total));
+          }
+        };
+        xhr.responseType = 'arraybuffer';
+        xhr.open('GET', "./assets/project.json");
+        xhr.send();
+      });
+      })();
+    </script>
+  <script>
+    const run = async () => {
+      const projectData = await getProjectData();
+      await scaffolding.loadProject(projectData);
+      setProgress(1);
+      loadingScreen.hidden = true;
+      if (true) {
+        scaffolding.start();
+      } else {
+        launchScreen.hidden = false;
+        launchScreen.addEventListener('click', () => {
+          launchScreen.hidden = true;
+          scaffolding.start();
+        });
+        launchScreen.focus();
+      }
+    };
+    run().catch(handleError);
+  </script>
+</body>
+</html>
